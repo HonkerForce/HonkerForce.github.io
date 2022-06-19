@@ -22,7 +22,7 @@
 
 > **文件** 按照*数据存储方式* 可分为``文本文件`` 和``二进制文件``。
 
-	### 文本文件
+### 文本文件
 
 > **文本文件** 的数据存储单位是 **字节**（8位二进制数），也就是一个char的内存大小。
 
@@ -255,5 +255,95 @@ int main()
 	fclose(pPngFile);
     return 0;
 }
+```
+
+## C++文件操作
+
+### 重定向输入输出流
+
+> 头文件：`#include<stdio.h>`
+>
+> **FILE \* freopen(文件名, 文件打开模式, 输入流或输出流[stdin或stdout]);**
+
+```cpp
+// 重定向输入输出流示例：
+
+#include<cstdio>
+#include<iostream>
+using namespace std;
+int main()
+{
+	freopen("a+b.in","r",stdin);
+	freopen("a+b.out","w",stdout);
+	//以上是模板
+	int a,b;
+	cin>>a>>b;
+	cout<<a+b<<endl;
+	return 0;
+}
+```
+
+### C++文件流
+
+> 文件流一共有三种，文件输入流（ifstream），文件输出流（ofstream），文件输入输出流（fstream）。三种流对应三个类。
+>
+> 输入流只能以读取模式打开文件，输出流只能以写入模式打开文件，输入输出流以读取和写入模式打开文件。
+>
+> **每个文件流类的构造函数可以传入文件名，可以用缺省的模式打开文件。**
+>
+> 也可以调用类内的成员函数对文件进行操作 ：
+>
+> #### 打开文件
+>
+> **void open(const char* filename,int mode,int access);**
+>
+> 打开文件的方式在类ios(是所有流式I/O类的[基类](https://baike.baidu.com/item/基类/9589663))中定义，常用的值如下：
+>
+> ios::app：以追加的方式打开文件<br>ios::ate：文件打开后定位到文件尾<br>ios:app就包含有此属性<br>ios::binary：以二进制方式打开文件，缺省的方式是文本方式。<br>ios::in：文件以输入方式打开<br>ios::out：文件以输出方式打开<br>ios::nocreate：不建立文件，所以文件不存在时打开失败<br>ios::noreplace：不覆盖文件，所以保存文件时如果文件存在失败<br>ios::trunc：如果文件存在，把文件长度设为0
+>
+> 可以用“或”把以上属性连接起来，如 ios::out | ios::binary
+>
+> *注：新的[C++标准库](https://baike.baidu.com/item/C%2B%2B标准库/8795193)不支持nocreate和noreplace，以前的旧版本可以用.*
+>
+> 打开文件的属性取值是：
+>
+> 0：普通文件，打开访问<br>1：只读文件<br>2：隐含文件<br>4：系统文件
+>
+> 可以用“或”或者“+”把以上属性连接起来 ，如`3`或`1 | 2`就是以只读和隐含属性打开文件。
+>
+> *注：打开文件后可使用__bool is_open() const;__函数根据返回值判断是否打开成功。*
+>
+> #### 关闭文件
+>
+> **void close();**
+>
+> #### 读写文件
+>
+> 1. 文本文件<br>可直接使用插入器(<<)向文件输出；用析取器(>>)从文件输入。<br>**ofstream &put(char ch);**写入一个字符<br>**ifstream &get(char &ch);**读取一个字符到ch<br>**int get();**返回一个字符<br>**ifstream &get(char *buf,int num,char delim='n')；**把[字符](https://baike.baidu.com/item/字符)读入由 buf 指向的[数组](https://baike.baidu.com/item/数组)，直到读入了 num 个字符或遇到了由 delim 指定的字符，如果没使用 delim 这个参数，将使用缺省值[换行符](https://baike.baidu.com/item/换行符/1410821)'n'。
+>
+> 2. 二进制文件<br>
+>
+>    **read(unsigned char *buf,int num);**
+>
+>    **write(const unsigned char *buf,int num);**
+>
+>    参数：读取到的数据块存储的地址，读取的数据块总大小
+>
+> #### 文件定位
+>
+> **istream& seekg(streamoff offset,seek_dir origin);**文件操作指针跳转到origin + offset处
+>
+> **ostream&seekp(streamoff offset,seek_dir origin);**文件操作指针跳转到origin + offset处（同上）
+>
+> seek_dir 表示移动的基准位置，是一个有以下值的枚举：<br>	ios::beg：文件开头<br>	ios::cur：文件当前位置<br>	ios::end：文件结尾
+>
+> **pos_type tellp();**获得当前文件流操作指针的位置
+>
+> **pos_type tellg();**获得当前文件流操作指针的位置（同上）
+
+```cpp
+// C++文件流示例：
+
+
 ```
 
