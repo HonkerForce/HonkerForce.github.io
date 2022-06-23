@@ -342,8 +342,67 @@ int main()
 > **pos_type tellg();**获得当前文件流操作指针的位置（同上）
 
 ```cpp
-// C++文件流示例：
+// C++文件流随机读写二进制文件示例：
 
+#include <iostream>
+#include <fstream>
+#include <cstring>
+#include <stdio.h>
 
+using namespace std;
+
+int main()
+{
+	ifstream PngFile("TestFile.png", ios::in | ios::binary);
+
+	if (!PngFile.is_open())
+	{
+		cout << "打开文件失败！" << endl;
+		return;
+	}
+	
+	const int ReadSize = 64;
+	char strRead[ReadSize] = {0};
+	// PngFile.seekg(0, ios::beg);
+	long long llSize = PngFile.readsome(strRead, ReadSize * sizeof(char));
+	if(llSize < ReadSize * sizeof(char) && PngFile.fail())
+	{
+		cout << "读取文件1失败！" << endl;
+		return;
+	}
+
+	cout << "前64位：" << endl;
+	for(int i = 0; i < ReadSize; ++i)
+	{
+		if(i && i % 16 == 0)
+		{
+			cout << endl;
+		}
+
+		printf("%02X ", (unsigned char)strRead[i]);
+	}
+
+	memset(strRead, 0, sizeof(strRead));
+	PngFile.seekg(-ReadSize, ios::end);
+	llSize = PngFile.readsome(strRead, ReadSize * sizeof(char));
+	if(llSize < ReadSize * sizeof(char) && PngFile.fail())
+	{
+		cout << "读取文件2错误！" << endl;
+		return;
+	}
+	cout << endl << "后64位：" << endl;
+	for(int i = 0; i < ReadSize; ++i)
+	{
+		if(i && i % 16 == 0)
+		{
+			cout << endl;
+		}
+
+		printf("%02X ", (unsigned char)strRead[i]);
+	}
+
+	PngFile.close();
+	return 0;
+}
 ```
 
