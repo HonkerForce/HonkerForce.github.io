@@ -406,3 +406,117 @@ int main()
 }
 ```
 
+## 内存映射文件
+
+### Windows内存映射文件
+
+> 打开文件：
+>
+> ​	HANDLE CreateFile(LPCTSTR lpFileName, DWORD dwDesiredAccess, DWORD dwShareMode, LPSECURITY_ATTRIBUTES lpSecurityAttributes, DWORD dwCreationDisposition, DWORD dwFlagsAndAttributes, HANDLE hTemplateFile);
+>
+> 创建文件映射区：
+>
+> ​	HANDLE CreateFileMapping(HANDLE hFile,
+> LPSECURITY_ATTRIBUTES lpFileMappingAttributes,
+> DWORD flProtect,
+> DWORD dwMaximumSizeHigh,
+> DWORD dwMaximumSizeLow,
+> LPCTSTR lpName);
+>
+> 映射文件：
+>
+> ​	SYSTEM_INFO sinf;<br> GetSystemInfo(&sinf); <br>DWORD dwAllocationGranularity = sinf.dwAllocationGranularity;读取系统分配粒度
+>
+> ​	LPVOID MapViewOfFile(HANDLE hFileMappingObject,
+> DWORD dwDesiredAccess,
+> DWORD dwFileOffsetHigh,
+> DWORD dwFileOffsetLow,
+> DWORD dwNumberOfBytesToMap);
+>
+> 取消映射：
+>
+> ​	BOOL UnmapViewOfFile(LPCVOID lpBaseAddress);
+>
+> 关闭文件/映射区：
+>
+> ​	BOOL CloseHandle(HANDLE hObject);
+
+### Linux内存映射文件
+
+> 打开文件：
+>
+>   int open(const char *pathname, int flags);
+>
+>   int open(const char *pathname, int flags, mode_t mode);
+>
+> 映射文件：
+>
+> ​	void *mmap(void *addr, size_t length, int prot, int flags,int fd, off_t offset);
+>
+> 同步映射修改：
+>
+> ​	进程在映射空间的对共享内容的改变并不直接写回到磁盘文件中，往往在调用[munmap](https://baike.baidu.com/item/munmap)()后才执行该操作。可以通过调用msync()函数来实现磁盘文件内容与共享内存区中的内容一致,即同步操作.
+>
+> ​	int msync(void *addr, size_t length, int flags);
+>
+> 关闭映射：
+>
+> ​	int munmap(void *addr, size_t length);
+>
+> 关闭文件：
+>
+> ​	int close(int fd);
+
+```cpp
+// Linux内存映射方式读写文件示例：
+#include<stdio.h>
+#include<stdlib.h>
+#include<sys/mman.h>
+#include<unistd.h>
+#include<fcntl.h>
+#define NumReconds 100
+typedef struct
+{
+    int iNum;
+    char sName[24];
+} Recond;
+int main(void)
+{
+    Recond recond,*mapped;
+    int i,f;
+    FILE *fp;
+                                                                                                                                                         
+    fp=fopen("recond.dat","w+");
+    for( i=0; i < NumReconds; i++)
+    {
+        recond.iNum = i;
+        sprintf(recond.sName,"Recond-%d\n",i);
+        fwrite(&recond,sizeof(Recond),1,fp);
+    }  
+                                                                                                                                                         
+    fclose(fp);
+        //使用传统方式修改文件内容
+    fp = fopen("recond.dat","r+");
+    //获得要修改文件的位置
+        fseek(fp,43*sizeof(recond),SEEK_SET);
+    fread(&recond,sizeof(recond),1,fp);
+    recond.iNum = 143;
+    sprintf(recond.sName,"Recond-%d",recond.iNum);
+    fwrite(&recond,sizeof(recond),1,fp);
+    fclose(fp);
+        //使用内存映射的方式打开文件，修改文件内存
+    //注意这里是open打开不是fopen!!!!   
+    f = open("recond.dat",O_RDWR);
+        //获得磁盘文件的内存映射
+    mapped = (Recond *) mmap(0 , NumReconds * sizeof(Recond) , PROT_READ|PROT_WRITE, MAP_SHARED, f, 0);
+    mapped[43].iNum = 999;
+        sprintf(mapped[43].sName,"Recond-%d",mapped[43].iNum);
+        //将修改同步到磁盘中
+    msync((void *)mapped,NumReconds*sizeof(recond),MS_ASYNC);
+        //关闭内存映射
+    munmap((void *)mapped,NumReconds*sizeof(recond));
+    close(f);
+    return 0;
+}
+```
+
