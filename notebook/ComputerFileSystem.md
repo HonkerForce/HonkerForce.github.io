@@ -441,6 +441,103 @@ int main()
 >
 > ​	BOOL CloseHandle(HANDLE hObject);
 
+```cpp
+// Windows内存映射方式读写文件示例：
+#include <iostream>
+#include <Windows.h>
+
+using namespace std;
+
+bool OpenFileAndMappingFile(LPCSTR strFileName, LPVOID* ppData, PDWORD pDataSize)
+{
+	bool bRet = false;
+
+	HANDLE hFile = CreateFile(strFileName, GENERIC_READ | GENERIC_WRITE, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+	if (hFile == INVALID_HANDLE_VALUE)
+	{
+		cout << "打开文件失败！" << endl;
+		CloseHandle(hFile);
+		hFile = NULL;
+		return bRet;
+	}
+
+	HANDLE hFileMap = CreateFileMapping(hFile, NULL, PAGE_READWRITE, 0, 0, 0);
+	if (hFileMap == INVALID_HANDLE_VALUE)
+	{
+		cout << "创建内存映射区失败！" << endl;
+		CloseHandle(hFileMap);
+		hFileMap = NULL;
+		return bRet;
+	}
+
+	if (hFileMap > 0)
+	{
+		*ppData = MapViewOfFile(hFileMap, FILE_MAP_ALL_ACCESS, 0, 0, 0);
+		if (*ppData != NULL)
+		{
+			*pDataSize = GetFileSize(hFile, NULL);
+			bRet = true;
+		}
+	}
+
+	if (hFile != NULL)
+	{
+		CloseHandle(hFile);
+		hFile = NULL;
+	}
+
+	if (hFileMap != NULL)
+	{
+		CloseHandle(hFileMap);
+		hFileMap = NULL;
+	}
+
+	return bRet;
+}
+
+int main() 
+{
+	LPCSTR szFileName = "TestFile.png";
+	LPVOID pData = NULL;
+	DWORD dwSize = 0;
+
+	if (!OpenFileAndMappingFile(szFileName, &pData, &dwSize))
+	{
+		cout << "打开文件，创建内存映射失败！" << endl;
+		return 0;
+	}
+	//cout << dwSize << endl;
+
+	cout << "前64字节：" << endl;
+
+	for (int i = 0; i < 64; ++i)
+	{
+		if (i && i % 16 == 0)
+		{
+			printf("\n");
+		}
+		printf("%02X ", ((unsigned char*)(pData))[i]);
+	}
+
+	cout << endl << "后64字节：" << endl;
+
+	auto pData2 = (unsigned char*)pData + dwSize - 64;
+	for (int i = 0; i < 64; ++i)
+	{
+		if (i && i % 16 == 0)
+		{
+			printf("\n");
+		}
+		printf("%02X ", pData2[i]);
+	}
+	
+	return 0;
+}
+
+```
+
+
+
 ### Linux内存映射文件
 
 > 打开文件：
