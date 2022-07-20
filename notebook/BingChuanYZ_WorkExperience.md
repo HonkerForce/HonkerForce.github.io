@@ -100,4 +100,6 @@
    bool RemoveBindItem(int nActor,int nItemID,int nNum,const char * reason , bool bBind, bool bNewSerial=true, bool bSameGroup = false, int nSkepType = emSkepTypeUnknown, int nItemValue = 0);
    ```
 
-   
+9. 家园服连接配置
+
+   ![HomeConfig](D:\HonkerForce.github.io\notebook\BingChuanYZ_WorkExperience\imageset\HomeConfig.png)
