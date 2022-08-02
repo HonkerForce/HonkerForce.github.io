@@ -102,4 +102,4 @@
 
 9. 家园服连接配置
 
-   ![HomeConfig](D:\HonkerForce.github.io\notebook\BingChuanYZ_WorkExperience\imageset\HomeConfig.png)
+   ![HomeConfig](D:\HonkerForce.github.io\notebook\imageset\HomeConfig.png)
