@@ -103,3 +103,83 @@
 9. 家园服连接配置
 
    ![HomeConfig](D:\HonkerForce.github.io\notebook\imageset\HomeConfig.png)
+
+10. 统计玩家包裹中的物品数量
+
+   ```lua
+   -- 客户端lua接口
+   ----------------------------------------------------------------
+   -- 统计背包中某一物品的数量
+   -- @param nGoodsID	: 物品ID
+   -- @param bIsHold	: true  : 只统计绑定的物品
+   --					  false : 只统计非绑定的物品
+   --					  其他  : 统计所有
+   ----------------------------------------------------------------
+   function GetItemCountEx(nGoodsID, bIsHold)
+       local nCount = 0
+       for _, nSkepName in pairs(SKEP_NAME_PACKET) do
+   		local oSkep = GetSkep(QuerySkepIdByName(nSkepName))
+   	 	if oSkep ~= nil then
+   			local nMaxSize = oSkep:GetMaxSize() - 1
+   			for n = 0, nMaxSize do
+   				repeat
+   					local oSkepGoods = oSkep:GetSkepGoodsByPlace(n)
+   					if oSkepGoods == nil then
+   						break
+   					end
+   
+   					local oEntity = GetEntity(oSkepGoods:GetUID())
+   					if oEntity == nil then
+   						break
+   					end
+   
+   					local nEntityID = oEntity:GetNumProp(GOODS_PROP_GOODSID)
+   					if nEntityID ~= nGoodsID then
+   						break
+   					end
+   
+   					if type(bIsHold) == 'boolean' then
+   						local bHasHold = c_and(oEntity:GetNumProp(GOODS_PROP_BIND), tGoods_BindFlag_Hold) ~= 0
+   						if (bHasHold and not bIsHold) or (not bHasHold and bIsHold) then
+   							break
+   						end
+   					end
+   
+   					nCount = nCount + oEntity:GetNumProp(GOODS_PROP_QTY)
+   				until true
+   			end
+   		end
+   	end	
+   	
+       return nCount
+   end
+   ```
+
+   ```cpp
+   // 场景服C++接口
+   /**
+   @name          : 统计玩家包裹中某种物品的个数
+   @brief         : 
+   @param nActor  : 玩家ID
+   @param nPrize  : 物品ID
+   @return        : 返回物品数量
+   @param bSameGroup	: 原因是有了成品装备(物品ID不同，但物品是同一种，只是可改造标志不同而已)以后的后遗症，比如任务需要收集“玄铁盔”,
+   　					 现在“玄铁盔”有好几种，每种的ID都不同，那么玩家得到某个“玄铁盔”以后，无法完成任务。
+   					 如果为true，表示与nGoodsID的lGoodsGroupID相同即可
+   @param nSkepType	: 物品栏类型，默认不指定
+   */
+   int CountItem(int nActor,int nItemID, bool bSameGroup, int nSkepType, int nItemValue)
+   {
+   	IEntity * pEntity = gZoneServiceProvider->GetZoneManager()->GetEntityWorld()->Get((DWORD)nActor,tEntity_Class_Person);
+   	if ( pEntity==0 )
+   		return 0;
+   
+   	IPacketSkepPart * pSkep = (IPacketSkepPart *)pEntity->GetEntityPart(ENTITYPART_PERSON_PACKET);
+   	if ( pSkep==0 )
+   		return 0;
+   
+   	return pSkep->GetCanRemoveGoods(nItemID, bSameGroup, nSkepType, nItemValue);
+   }
+   ```
+
+   
