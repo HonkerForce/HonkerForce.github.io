@@ -90,3 +90,23 @@ namespace DLLTest
 }
 ```
 
+### 2.多客户端测试
+
+​	除了Build项目后，启动多个客户端程序去测试（测试岗一般方法），在自己本机上为了模拟多个客户端，可以通过Windows指令mklink创建项目文件夹的联接文件夹，类似于复制了一个会根据原项目文件夹变化的项目文件夹，这样就可以通过Unity同时打开两个名字不相同的项目，其中两个项目的核心文件都是会自动同步的。批处理程序如下：
+
+```bat
+@echo off
+
+set dirSrc=E:\Rocket20220902\Bin\Client\Game\
+set dirTarget=E:\Rocket20220902_Copy\Bin\Client\Game\
+
+if not exist %dirSrc% ( md %dirSrc%)
+if not exist %dirTarget% ( md %dirTarget%)
+
+mklink /J %dirTarget%Assets %dirSrc%Assets
+
+mklink /J %dirTarget%ProjectSettings %dirSrc%ProjectSettings
+
+pause
+```
+
