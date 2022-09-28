@@ -110,3 +110,40 @@ mklink /J %dirTarget%ProjectSettings %dirSrc%ProjectSettings
 pause
 ```
 
+### 3.Unity导入Protobuf
+
+#### 下载protobuf库和编译工具
+
+​	首先在GitHub上，下载最新版的Protobuf项目。
+
+​	[Protobuf下载地址](https://github.com/protocolbuffers/protobuf/releases/tag/v3.20.2)
+
+![image-20220928171410698](imageset/image-20220928171410698.png)
+
+​	下载csharp语言的protobuf库的压缩包，并下载对应平台的protoc编译工具。
+
+	#### 编译生成protobuf动态链接库
+
+![image-20220928172327822](imageset/image-20220928172327822.png)
+
+​	解压进入src目录，使用VS打开Google.Protobuf解决方案。
+
+![image-20220928172730607](imageset/image-20220928172730607.png)
+
+​	选择Release配置，生成Google.Protobuf程序集，编译成功后，生成的库文件在项目文件的bin\Release下。**PS：如果生成失败，请检查VS支持的.net sdk是否与下载的protobuf项目使用的一致。例如使用VS2022编译Protobuf3.19.2会报缺少.NET SDK的错误和警告，更换Protobuf3.20.2后就可以编译成功了。**
+
+> NETSDK1141		Unable to resolve the .NET SDK version as specified in the global.json located at F:\protobuf\protobuf-3.19.2\global.json.
+>
+> 警告		无法找到 global.json 指定的 .NET SDK，请检查是否安装了指定的版本。
+
+![image-20220928175048922](imageset/image-20220928175048922.png)
+
+​	Unity2020之后Unity默认支持的脚本后端是Mono，API兼容等级为.NET Standard 2.1，我们优先使用最新.NET Standard标准编译生成的Protobuf库，方便更好的跨平台。
+
+![image-20220928180740005](imageset/image-20220928180740005.png)
+
+​	将netstandard2.0文件夹下的库文件都复制粘贴到根据proto生成的cs脚本文件所在的目录下。**PS：proto的cs脚本与protobuf库文件不在同一目录下会报找不到Google命名空间的错误。**
+
+#### 根据proto文件生成cs脚本
+
+​	
