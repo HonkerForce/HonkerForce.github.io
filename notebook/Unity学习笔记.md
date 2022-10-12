@@ -158,5 +158,20 @@ pause
 
 ### 4.Unity自动生成的配置文件
 
+​	场景文件(.unity)：记录了所有场景中的GameObject上挂载的各个组件，以及各个组件的参数设置
+
+​	资源配置(.meta)：记录了各种资源（预制体、美术资源、音频资源、文件夹资源、链接库资源）的参数设置
+
 ### 5.Unity中常用的宏定义
 
+| 宏                     | 定义                          |
+| :--------------------- | :---------------------------- |
+| UNITY_STANDALONE       | PC(包括Windows、MacOS、Linux) |
+| UNITY_STANDALONE_WIN   | Windows                       |
+| UNITY_STANDALONE_OSX   | MacOS                         |
+| UNITY_STANDALONE_LINUX | Linux                         |
+| UNITY_ANDROID          | 安卓                          |
+| UNITY_IOS              | IOS                           |
+| UNITY_WEBGL            | WebGL                         |
+| UNITY_WP_8_1           | Windows Phone 8.1             |
+| UNITY_PS4              | PlayStation 4                 |
