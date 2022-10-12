@@ -118,11 +118,11 @@ pause
 
 ​	[Protobuf下载地址](https://github.com/protocolbuffers/protobuf/releases/tag/v3.20.2)
 
-![image-20220928171410698](imageset/image-20220928171410698.png)
+![image-20221012121904805](imageset/image-20221012121904805.png)
 
 ​	下载csharp语言的protobuf库的压缩包，并下载对应平台的protoc编译工具。
 
-	#### 编译生成protobuf动态链接库
+#### 项目导入protobuf
 
 ![image-20220928172327822](imageset/image-20220928172327822.png)
 
@@ -130,20 +130,33 @@ pause
 
 ![image-20220928172730607](imageset/image-20220928172730607.png)
 
-​	选择Release配置，生成Google.Protobuf程序集，编译成功后，生成的库文件在项目文件的bin\Release下。**PS：如果生成失败，请检查VS支持的.net sdk是否与下载的protobuf项目使用的一致。例如使用VS2022编译Protobuf3.19.2会报缺少.NET SDK的错误和警告，更换Protobuf3.20.2后就可以编译成功了。**
+​	选择Release配置，生成Google.Protobuf程序集，编译成功后，生成的库文件在项目文件的bin\Release下。**PS：如果生成失败，请检查VS支持的.net sdk是否与下载的protobuf项目使用的一致。例如使用VS2022编译Protobuf3.19.2会报缺少.NET SDK的错误和警告，更换Protobuf3.20.1后就可以编译成功了。**
 
 > NETSDK1141		Unable to resolve the .NET SDK version as specified in the global.json located at F:\protobuf\protobuf-3.19.2\global.json.
 >
 > 警告		无法找到 global.json 指定的 .NET SDK，请检查是否安装了指定的版本。
 
+​	因为编译使用动态链接库需要保证Protobuf库、VS环境、Unity后台脚本编译器上的.net版本兼容，所以可以选择不使用Protobuf库，而是直接导入Protobuf源码的方式去使用Protobuf。
+
+​	即只需要将下载的Protobuf项目中的csharp/src/Google.Protobuf文件夹复制粘贴到Unity项目的Asset目录中（具体路径可根据项目设计微调，但必须在Asset目录下）。
+
+​	**PS：Protobuf 3.13以上版本，不可直接使用源码导入**
+
+---
+
 ![image-20220928175048922](imageset/image-20220928175048922.png)
 
-​	Unity2020之后Unity默认支持的脚本后端是Mono，API兼容等级为.NET Standard 2.1，我们优先使用最新.NET Standard标准编译生成的Protobuf库，方便更好的跨平台。
-
-![image-20220928180740005](imageset/image-20220928180740005.png)
-
-​	将netstandard2.0文件夹下的库文件都复制粘贴到根据proto生成的cs脚本文件所在的目录下。**PS：proto的cs脚本与protobuf库文件不在同一目录下会报找不到Google命名空间的错误。**
+​	使用链接库方式导入：将**net45**文件夹下的库文件都复制粘贴到项目Assets目录下。**PS：Google.Protobuf库文件不在Unity项目Asset目录下会报找不到Google命名空间的错误。**
 
 #### 根据proto文件生成cs脚本
 
-​	
+![image-20221012123429675](imageset/image-20221012123429675.png)
+
+​	创建Assets/Scripts/Protobuf文件夹，将.proto文件和protoc.exe放在Assets/Scripts/Proto文件夹中，使用Unity菜单栏工具（Tool/Protobuf/Compile）编译生成proto的cs脚本，cs脚本会自动生成在Assets/Scripts/Protobuf文件夹下。
+
+![image-20221012092741294](imageset/image-20221012092741294.png)
+
+### 4.Unity自动生成的配置文件
+
+### 5.Unity中常用的宏定义
+
