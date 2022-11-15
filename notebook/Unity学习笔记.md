@@ -193,3 +193,5 @@ pause
 | Alt + F12                     | 显示下一个Error                                  |
 | Ctrl + E                      | 显示最近编辑的文件                               |
 
+![img](./Unity学习笔记/imageset/v2-1f4486a295fdd938aacb918afc8f3925_r.jpg)
+
