@@ -4,13 +4,13 @@
 
 Unity的C#脚本可以统一封装入一个链接库，通过引用（using）链接库的方式调用脚本中定义的类。可以在创建C#项目的时候选择项目类型为“类库”。
 
-![创建类库](D:\HonkerForce.github.io\notebook\imageset\image-20220914115440887.png)
+![image-20220914115440887](./Unity学习笔记/imageset/image-20220914115440887.png)
 
 在创建的类库项目的引用中添加需要依赖的程序集。
 
-![添加依赖的程序集](C:\Users\dongdeyu\AppData\Roaming\Typora\typora-user-images\image-20220914120305631.png)
+![image-20221115104535315](./Unity学习笔记/imageset/image-20221115104535315.png)
 
-![image-20220914120353261](C:\Users\dongdeyu\AppData\Roaming\Typora\typora-user-images\image-20220914120353261.png)
+![image-20221115104554567](./Unity学习笔记/imageset/image-20221115104554567.png)
 
 之后在此项目（同名Namespace）中定义的程序，就会编译进一个与项目同名的链接库中，将链接库设置为Unity脚本项目的依赖库后，便可在Unity项目中导入使用该链接库中定义的程序。
 
@@ -62,11 +62,11 @@ public class Test : MonoBehaviour
 
 ```
 
-![image-20220914121051260](C:\Users\dongdeyu\AppData\Roaming\Typora\typora-user-images\image-20220914121051260.png)
+![image-20221115104916332](./Unity学习笔记/imageset/image-20221115104916332.png)
 
 除了导入C#脚本的链接库，还可以将C#链接库中包含的脚本类直接作为Script组件使用（**前提是链接库中供Unity使用的脚本类必须继承自MonoBehaviour**）：
 
-![image-20220914150948523](imageset/image-20220914150948523.png)
+![image-20220914150948523](./Unity学习笔记/imageset/image-20220914150948523.png)
 
 ```c#
 // 可供Unity直接导入使用的DLL链接库
@@ -175,3 +175,21 @@ pause
 | UNITY_WEBGL            | WebGL                         |
 | UNITY_WP_8_1           | Windows Phone 8.1             |
 | UNITY_PS4              | PlayStation 4                 |
+
+### 6.ReSharper For VS 常用快捷键
+
+| 快捷键                        | 作用                                             |
+| ----------------------------- | ------------------------------------------------ |
+| Alt + F7                      | 查找引用                                         |
+| Ctrl + N                      | Go To Everything 定位到任何，非常强大            |
+| Ctrl + Shift + N              | Go To File 定位到文件                            |
+| Ctrl + F12                    | Go To File Member 在当前类中查找                 |
+| F2                            | 重命名任何东西，重构利器                         |
+| Ctrl + Tab                    | 活动文件之间切换，当前打开的所有文件             |
+| Ctrl + Shift + Alt +向上/向下 | 上下行代码交换位置                               |
+| Ctrl + [Shift] + W            | 快速选中[/取消选中]整个/一块单词                 |
+| Ctrl + Alt + F                | Clean Code                                       |
+| Ctrl + Alt + J                | 快速添加语句块，如if,for,try catch,using,#region |
+| Alt + F12                     | 显示下一个Error                                  |
+| Ctrl + E                      | 显示最近编辑的文件                               |
+

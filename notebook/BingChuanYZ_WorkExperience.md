@@ -102,7 +102,7 @@
 
 9. 家园服连接配置
 
-   ![HomeConfig](D:\HonkerForce.github.io\notebook\imageset\HomeConfig.png)
+   ![HomeConfig](./BingChuanYZ_WorkExperience/imageset/HomeConfig.png)
 
 10. 统计玩家包裹中的物品数量
 
@@ -178,8 +178,7 @@
    	if ( pSkep==0 )
    		return 0;
    
-   	return pSkep->GetCanRemoveGoods(nItemID, bSameGroup, nSkepType, nItemValue);
+   	return pSkep->GetCanRemoveGoods(nItemID, bSameGroup, nSk
+                                       epType, nItemValue);
    }
    ```
-
-   
