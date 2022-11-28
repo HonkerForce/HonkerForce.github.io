@@ -195,3 +195,124 @@ pause
 
 ![img](./Unity学习笔记/imageset/v2-1f4486a295fdd938aacb918afc8f3925_r.jpg)
 
+### 7.Application几个关键的Path
+
+Unity的Application有几个关键的Path：Application.dataPath、Application.streamingAssetsPath、Application.persistentDataPath、Application.temporaryCachePath。 
+
+在个平台下的具体路径如下：
+
+|                    | Application.dataPath                                         | Application.streamingAssetsPath                              | Application.persistentDataPath                             | Application.temporaryCachePath                               |
+| ------------------ | ------------------------------------------------------------ | ------------------------------------------------------------ | ---------------------------------------------------------- | ------------------------------------------------------------ |
+| iOS                | Application/xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx/xxx.app/Data | Application/xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx/xxx.app/Data/Raw | Application/xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx/Documents | Application/xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx/Library/Caches |
+| Android            | /data/app/xxx.xxx.xxx.apk                                    | jar:file:///data/app/xxx.xxx.xxx.apk/!/assets                | /data/data/xxx.xxx.xxx/files                               | /data/data/xxx.xxx.xxx/cache                                 |
+| Windows            | /Assets                                                      | /Assets/StreamingAssets                                      | C:/Users/xxxx/AppData/LocalLow/CompanyName/ProductName     | C:/Users/xxxx/AppData/Local/Temp/CompanyName/ProductName     |
+| Mac                | /Assets                                                      | /Assets/StreamingAssets                                      | /Users/xxxx/Library/Caches/CompanyName/Product Name        | /var/folders/57/6b4_9w8113x2fsmzx_yhrhvh0000gn/T/CompanyName/Product Name |
+| Windows Web Player | file:///D:/MyGame/WebPlayer (即导包后保存的文件夹，html文件所在文件夹) |                                                              |                                                            |                                                              |
+
+### 8.WWW加载资源
+
+WWW是异步加载所以执行加载命令式不能直接执行读取解析操作，要等待
+
+``` csharp
+WWW www = new WWW(filePath);
+yield return www; // while (!www.isDone) {}
+result = www.text;
+```
+
+Android之所以不支持C# IO流 方式读取StreamingAssets下的文件，是因为Android手机中，StreamingAssets下的文件都包含在压缩的.jar文件中（这基本上与标准的zip压缩文件的格式相同）。不能直接用读取文件的函数去读，而要用WWW方式。具体做法如下： 
+1.把你要读取的文件放在Unity项目的Assets/StreamingAssets文件夹下面，没有这个文件夹的话自己建一个。 
+2.读取的代码(假设名为"文件.txt") 
+
+```csharp
+//用来存储读入的数据
+byte[] bytes;       
+//判断当前程序是否运行在安卓下                                                                                                   
+if (Application.platform == RuntimePlatform.Android)                                            
+{ 
+    
+
+    string fpath= "jar:file://" + Application.dataPath + "!/assets/" + "文件.txt"; 
+    //等价于string fpath = Application.StreamingAssetPath+"/文件.txt"; 
+    
+    WWW www = new WWW(fpath);                                                                
+    //WWW是异步读取，所以要用循环来等待 
+    while(!www.isDone){}                                                                       
+    //存到字节数组里 
+    bytes= www.bytes;                                                                           
+
+ 
+
+} 
+else 
+{ 
+    //其他平台的读取代码 
+}
+```
+
+### 9.各目录权限
+
+#### 1.StreamingAssets文件夹（只读）
+
+``` csharp
+#if UNITY_EDITOR
+    string filepath = Application.dataPath +"/StreamingAssets/"+"my.xml";
+#elif UNITY_IOS
+    string filepath = Application.dataPath +"/Raw/"+"/my.xml";
+#elif UNITY_ANDROID
+    string filepath = "jar:file://" + Application.dataPath + "!/assets/"+"my.xml;
+#endif
+```
+
+#### 2.Resources文件夹（只读）
+
+可以使用Resources.Load("名字"); 把文件夹中的对象加载出来
+
+#### 3.Application.dataPath文件夹（只读）
+可以使用Application.dataPath进行读操作
+
+Application.dataPath： 只可读不可写，放置一些资源数据
+
+#### 4.Application.persistentDataPath文件夹（读写）
+iOS与android平台都可以使用这个目录下进行读写操作，可以存放各种配置文件进行修改之类的。
+
+在PC上的地址是：C:\Users\用户名 \AppData\LocalLow\DefaultCompany\test
+
+#### 5.总结
+
+##### (1)在项目根目录中创建Resources文件夹来保存文件。
+
+可以使用Resources.Load("文件名字，注：不包括文件后缀名");把文件夹中的对象加载出来。
+**注：此方可实现对文件实施“增删查改”等操作，但打包后不可以更改了。**
+
+##### (2)直接放在项目根路径下来保存文件
+
+在直接使用Application.dataPath来读取文件进行操作。
+**注：移动端是没有访问权限的。**
+
+##### (3)在项目根目录中创建StreamingAssets文件夹来保存文件。
+
+a.可使用Application.dataPath来读取文件进行操作。
+
+```csharp
+#if UNITY_EDITOR
+    string filepath = Application.dataPath +"/StreamingAssets/"+"my.xml";
+#elif UNITY_IOS
+    string filepath = Application.dataPath +"/Raw/"+"my.xml";
+#elif UNITY_ANDROID
+    string filepath = "jar:file://" + Application.dataPath + "!/assets/"+"my.xml;
+#endif
+// 上面三个平台各自判断，其实不用那么麻烦，直接统一使用Application.streamingAssets即可
+// string filepath = Application.streamingAssets + "/my.xml";
+```
+
+
+b.直接使用Application.streamingAssetsPath来读取文件进行操作。
+**注：此方法在pc/Mac电脑中可实现对文件实施“增删查改”等操作，但在移动端只支持读取操作。**
+
+##### (4)使用Application.persistentDataPath来操作文件（荐）
+
+该文件存在手机沙盒中，因此不能直接存放文件，
+
+1. 通过服务器直接下载保存到该位置，也可以通过md5码比对下载更新新的资源
+2. 没有服务器的，只有间接通过文件流的方式从本地读取并写入Application.persistentDataPath文件下，然后再通过Application.persistentDataPath来读取操作。
+**注：在Windows / Mac电脑 以及Android、iPad、iPhone都可对文件进行任意操作，另外在iOS上该目录下的东西可以被iCloud自动备份。**
