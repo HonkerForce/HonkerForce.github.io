@@ -316,3 +316,76 @@ b.直接使用Application.streamingAssetsPath来读取文件进行操作。
 1. 通过服务器直接下载保存到该位置，也可以通过md5码比对下载更新新的资源
 2. 没有服务器的，只有间接通过文件流的方式从本地读取并写入Application.persistentDataPath文件下，然后再通过Application.persistentDataPath来读取操作。
 **注：在Windows / Mac电脑 以及Android、iPad、iPhone都可对文件进行任意操作，另外在iOS上该目录下的东西可以被iCloud自动备份。**
+
+### 10.MVC架构个人理解
+
+​	MVC（Model-View-Control）的本质：通过Control监控(使用事件/消息等注册的委托回调实现)View的用户交互和画面变化，编写逻辑修改Model中的数据，并通知View根据Model中的数据更新View控制的画面显示。
+
+### 11.tolua插件的使用
+
+​	tolua插件是Unity引擎的开源lua热更新第三方库，可以针对特定C#类型生成wrap文件，将C#中的类型快速反射到lua虚拟机中，通过lua进行逻辑显示层的编写。也可通过tolua库在C#中的全局LuaState对象，直接获取lua虚拟机中的所有表数据，实现C#与lua之间逻辑和数据的同步，并可借助lua实现刷脚本热更新客户端。
+
+#### tolua库的C# API语法
+
+LuaState封装了对lua 主要数据结构 lua_State 指针的各种堆栈操作。
+一般对于客户端，推荐只创建一个LuaState对象。如果要使用多State需要在Unity中设置全局宏 MULTI_STATE
+
+- LuaState.Start 需要在tolua代码加载到内存后调用。如果使用assetbunblde加载lua文件，调用Start()之前assetbundle必须加载好
+- LuaState.DoString 执行一段lua代码,除了例子,比较少用这种方式加载代码,无法避免代码重复加载覆盖等,需调用者自己保证。第二个参数用于调试信息,或者error消息(用于提示出错代码所在文件名称)
+- LuaState.CheckTop 检查是否堆栈是否平衡，一般放于update中，c#中任何使用lua堆栈操作，都需要调用者自己平衡堆栈（参考LuaFunction以及LuaTable代码）, 当CheckTop出现警告时其实早已经离开了堆栈操作范围，这是需自行review代码。
+- LuaState.Dispose 释放LuaState 以及其资源。
+
+tolua#DoFile函数,跟lua保持一致行为,能多次执行一个文件。tolua#加入了新的Require函数,无论c#和lua谁先require一个lua文件, 都能保证加载唯一性
+
+- LuaState.AddSearchPath 增加搜索目录, 这样DoFile跟Require函数可以只用文件名,无需写全路径
+- LuaState.DoFile 加载一个lua文件, 注意dofile需要扩展名, 可反复执行, 后面的变量会覆盖之前的DoFile加载的变量
+- LuaState.Require 同lua require(modname)操作, 加载指定模块并且把结果写入到package.loaded中,如果modname存在, 则直接返回package.loaded[modname]
+- LuaState.Collect 垃圾回收, 对于被自动gc的LuaFunction, LuaTable, 以及委托减掉的LuaFunction, 延迟删除的Object之类。等等需要延迟处理的回收, 都在这里自动执行
+
+tolua# 简化了lua函数的操作，通过LuaFunction封装(并缓存)一个lua函数，并提供各种操作, 建议频繁调用函数使用无GC方式。
+
+- LuaState.GetLuaFunction 获取并缓存一个lua函数, 此函数支持串式操作, 如"test.luaFunc"代表test表中的luaFunc函数。
+- LuaState.Invoke 临时调用一个lua function并返回一个值，这个操作并不缓存lua function，适合频率非常低的函数调用。
+- LuaFunction.Call() 不需要返回值的函数调用操作
+- LuaFunction.Invoke() 有一个返回值的函数调用操作
+- LuaFunction.BeginPCall() 开始函数调用
+- LuaFunction.Push() 压入函数调用需要的参数，通过众多的重载函数来解决参数转换gc问题
+- LuaFunction.PCall() 调用lua函数
+- LuaFunction.CheckNumber() 提取函数返回值, 并检查返回值为lua number类型
+- LuaFunction.EndPCall() 结束lua函数调用, 清楚函数调用造成的堆栈变化
+- LuaFunction.Dispose() 释放LuaFunction, 递减引用计数，如果引用计数为0, 则从_R表删除该函数
+
+> **注意:** 无论Call还是PCall只相当于lua中的函数'.'调用。
+> 请注意':'这种语法糖 self:call(...) == self.call(self, ...）
+> c# 中需要按后面方式调用, 即必须主动传入第一个参数self
+
+- luaState["Objs2Spawn"] LuaState通过重载this操作符，访问lua _G表中的变量Objs2Spawn
+- LuaState.GetTable 从lua中获取一个lua table, 可以串式访问比如lua.GetTable("varTable.map.name") 等于 varTable->map->name
+- LuaTable 支持this操作符，但此this不支持串式访问。比如table["map.name"] "map.name" 只是一个key，不是table->map->name
+- LuaTable.GetMetaTable() 可以获取当前table的metatable
+- LuaTable.ToArray() 获取数组表中的所有对象存入到object[]表中
+- LuaTable.AddTable(name) 在当前的table表中添加一个名字为name的表
+- LuaTable.GetTable(key) 获取t[key]值到c#, 类似于 lua_gettable
+- LuaTable.SetTable(key, value) 等价于t[k] = v的操作, 类似于lua_settable
+- LuaTable.RawGet(key) 获取t[key]值到c#, 类似于 lua_rawget
+- LuaTable.RawSet(key, value) 等价于t[k] = v的操作, 类似于lua_rawset
+
+- 必须启动LuaLooper驱动协程，这里将一个lua的半双工协程装换为类似unity的全双工协程
+- coroutine.start 启动一个lua协程
+- coroutine.wait 协程中等待一段时间，单位:秒
+- coroutine.step 协程中等待一帧.
+- coroutine.www 等待一个WWW完成.
+- tolua.tolstring 转换byte数组为lua字符串缓冲
+- coroutine.stop 停止一个正在lua将要执行的协程
+
+#### tolua库自定义数据
+
+​	主要需要自定义的是需要生成wrap并绑定到lua虚拟机的C#类型，在CustomSetting.cs文件中的customTypeList表里添加要注册的类型，还有就是wrap文件的生成路径等相关配置，在LuaConst.cs文件中定义。
+
+#### tolua生成wrap文件
+
+​	在Unity的菜单栏中找到"Lua"，使用"Lua\Clear wrap files"清空之前生成的wrap文件，之后使用"Lua\Gen Lua Wrap Files"生成Wrap文件，_针对CustomSetting.cs中注释标记的wrap文件还原为SVN上的版本（解决tolua转换.net7.2+系统库API导致的语法错误问题）_，然后使用"Lua\Gen Lua Delegates"和"Lua\Gen LuaBinder File"，就可成功导入C# API到Lua了。
+
+#### Lua中C#命名空间的映射关系
+
+​	C#全局命名空间中的类，转换后在Lua中都会被放在UnityEngine包中，默认使用的全局C#类，可以不写UnityEngine包名。对于在其他命名空间中定义的类，比如其他第三方库生成导入的类，在导入Lua时会将每个命名空间转化为Lua中的模块(包)，在Lua中使用非UnityEngine命名空间的类时，需要通过``特定的模块(命名空间)名.类名``去访问。
